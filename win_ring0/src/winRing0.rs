@@ -8,10 +8,16 @@ pub struct WinRing0 {
     driver: WinKernelDriver
 }
 
+#[repr(C)]
+struct OlsWriteMsrInput {
+    register: u32,
+    value: u64,
+}
+
 impl<'a> WinRing0 {
     pub fn new() -> Self {
         let driver_x64 = include_bytes!("../winRing0x64.sys");
-        let driver_x86 = include_bytes!("../winRing0.sys");
+        //let driver_x86 = include_bytes!("../winRing0.sys");
 
         let driver = DriverBuilder::new()
             .set_device_description("Rust winRing0 driver")
@@ -52,6 +58,29 @@ impl<'a> WinRing0 {
             Err(err) => { return Err(format!("Error reading msr: {}", err)); }
         }
     }
+
+    /// Write a MSR register
+    pub fn writeMsr(&self, msr: DWORD, value: u64) -> Result<(), String> {
+        let input = OlsWriteMsrInput {
+            register: msr,
+            value,
+        };
+
+        match self.driver.io_struct(IOCTL::OLS_WRITE_MSR as u32, &input) {
+            Ok(_) => Ok(()),
+            Err(err) => Err(format!("Error writing MSR: {}", err)),
+        }
+    }
+
+    /// Get the status
+    pub fn getStatus(&self) -> Result<(), String> {
+        const MSR_TSC: DWORD = 0x10; // Time Stamp Counter
+
+        match self.readMsr(MSR_TSC) {
+            Ok(_) => Ok(()),
+            Err(err) => Err(format!("WinRing0 not operational: {}", err)),
+        }
+}
 
     /// Raw IO function. See [WinKernelDriver::io] for more information
     pub fn io(&self, ioctl: IOCTL, in_buffer: u32) -> Result<u64, String> {

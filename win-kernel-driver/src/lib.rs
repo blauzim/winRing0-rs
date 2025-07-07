@@ -8,7 +8,6 @@
 //! 
 //! For example usage see [WinKernelDriver], [DriverBuilder], and [io_control_code]
 //!
-mod utils;
 mod driver;
 
 pub use driver::WinKernelDriver;

@@ -372,5 +372,43 @@ impl WinKernelDriver {
                 return Err(format!("DeviceIoControl - Unable to write command {:x}. Last error code: {:x}", ioctl_code, last_error));
             }
         }
-    }    
+    }
+
+    pub fn io_struct<T>(&self, ioctl_code: u32, input: &T) -> Result<u64, String> {
+        if !self.opened() {
+            return Err("Driver not opened!".to_string());
+        }
+
+        let device = self.device.unwrap() as winnt::HANDLE;
+        let in_buffer_size = std::mem::size_of::<T>() as u32;
+        let mut out_buffer = [0u8; std::mem::size_of::<u64>()];
+        let out_buffer_size = out_buffer.len() as u32;
+        let mut out_buffer_written: DWORD = 0;
+
+        let input_ptr = input as *const _ as *mut std::ffi::c_void;
+
+        unsafe {
+            let res = ioapiset::DeviceIoControl(
+                device,
+                ioctl_code,
+                input_ptr,
+                in_buffer_size,
+                out_buffer.as_mut_ptr() as *mut _,
+                out_buffer_size,
+                &mut out_buffer_written,
+                null_mut(),
+            );
+
+            if res != 0 {
+                Ok(u64::from_le_bytes(out_buffer))
+            } else {
+                let last_error = errhandlingapi::GetLastError();
+                Err(format!(
+                    "DeviceIoControl (struct) failed for {:x}, error code: {:x}",
+                    ioctl_code, last_error
+                ))
+            }
+        }
+    }
+  
 }
