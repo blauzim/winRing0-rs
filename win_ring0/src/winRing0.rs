@@ -80,7 +80,7 @@ impl<'a> WinRing0 {
             Ok(_) => Ok(()),
             Err(err) => Err(format!("WinRing0 not operational: {}", err)),
         }
-}
+    }
 
     /// Raw IO function. See [WinKernelDriver::io] for more information
     pub fn io(&self, ioctl: IOCTL, in_buffer: u32) -> Result<u64, String> {
