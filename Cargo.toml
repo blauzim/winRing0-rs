@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "win-kernel-driver",
-    "win_ring0"
+    "win_ring0",
+    "win_ring0/example"
 ]

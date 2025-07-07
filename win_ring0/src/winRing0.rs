@@ -73,11 +73,11 @@ impl<'a> WinRing0 {
     }
 
     /// Get the status
-    pub fn getStatus(&self) -> Result<(), String> {
+    pub fn getStatus(&self) -> Result<u64,String> {
         const MSR_TSC: DWORD = 0x10; // Time Stamp Counter
 
         match self.readMsr(MSR_TSC) {
-            Ok(_) => Ok(()),
+            Ok(result) => Ok(result),
             Err(err) => Err(format!("WinRing0 not operational: {}", err)),
         }
     }
